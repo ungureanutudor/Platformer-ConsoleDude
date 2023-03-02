@@ -1,0 +1,68 @@
+[gd_scene load_steps=4 format=3 uid="uid://denl6k1lfhyi8"]
+
+[ext_resource type="Texture2D" uid="uid://cnb3t3a42kvyo" path="res://Sprites/Player_Idle.png" id="1_6r0eh"]
+
+[sub_resource type="GDScript" id="GDScript_5fhuq"]
+script/source = "extends CharacterBody2D
+
+
+var score : int = 0
+var speed : int = 200
+var jumpForce : int = 600
+var gravity : int = 800
+
+@onready var sprite : Sprite2D = get_node(\"PlayerIdle\");
+@onready var ui : Node = get_node(\"/root/MainScene/CanvasLayer/UI\")
+@onready var audioPlayer : Node = get_node(\"/root/MainScene/Camera2D/AudioPlayer\")
+
+func _physics_process(delta):
+	
+	velocity.x = 0
+	
+	#move X axis
+	if Input.is_action_pressed(\"move_left\"):
+		velocity.x -= speed
+	if Input.is_action_pressed(\"move_right\"):
+		velocity.x += speed
+		
+	#apply velocity to character
+	move_and_slide()
+	
+	#sprite direction
+	if velocity.x < 0:
+		sprite.flip_h = true
+	elif velocity.x > 0:
+		sprite.flip_h = false
+	
+	#gravity
+	velocity.y += gravity * delta
+	
+	#Jump (jump jump jump...)
+	if Input.is_action_just_pressed(\"jump\") and is_on_floor():
+		velocity.y -= jumpForce
+	
+
+func die():
+	
+	get_tree().reload_current_scene()
+
+func collect_coin(value):
+	
+	score += value
+	ui.set_score_text(score)
+	audioPlayer.play_coin_sfx()
+
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_r5ttq"]
+size = Vector2(52, 67)
+
+[node name="Player" type="CharacterBody2D"]
+script = SubResource("GDScript_5fhuq")
+
+[node name="PlayerIdle" type="Sprite2D" parent="."]
+texture = ExtResource("1_6r0eh")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 15.5)
+shape = SubResource("RectangleShape2D_r5ttq")
